@@ -9,16 +9,46 @@
 </head>
 <body onload="loaded();">
 
-	<nav>
-		Website Navigation Bar
-	</nav>
-
 	<h1>Munchr</h1>
 
-	<label id="food-drop">
-		Upload image of food
-		<input type="file" id="image-input" multiple accept="image/*" />
+	<div hidden id="chat">
+		<img id="food-img" />
+		<span id="ai-response">Reponse goes here</span>
+	</div>
+
+	<label id="food-drop" class="maximize">
+		<span id="attach-label">Attach image of your food to learn more about it</span>
+		<input name="image" form="submission" type="file" id="image-input" multiple accept="image/*" />
 	</label>
-	<img id="food-img" />
+	
+	<span id="input-area" hidden>
+		<textarea id="input-text" name="input" form="submission" type="text" placeholder="..."></textarea>
+	</span>
+
+	<p hidden>Find substitutes:</p>
+	<table id="options-table" hidden>
+		<tr>
+			<td>Gluten free</td>
+			<td><input name="gluten_free" form="submission" type="checkbox" /></td>
+		</tr>
+		<tr>
+			<td>Vegetarian</td>
+			<td><input name="vegetarian" form="submission" type="checkbox" /></td>
+		</tr>
+		<tr>
+			<td>Vegan</td>
+			<td><input name="vegan" form="submission" type="checkbox" /></td>
+		</tr>
+		<tr>
+			<td>Dairy free</td>
+			<td><input name="dairy_free" form="submission" type="checkbox" /></td>
+		</tr>
+		<tr>
+			<td>Allergens</td>
+			<td><input name="allergens" form="submission" type="text" /></td>
+		</tr>
+	</table>
+
+	<input form="submission" type="submit" id="submit-button" hidden>
 	
 </body>
