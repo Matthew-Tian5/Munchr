@@ -12,13 +12,13 @@
 	<h1>Munchr</h1>
 
 	<div hidden id="chat">
-		<img id="food-img" />
-		<span id="ai-response">Reponse goes here</span>
+		<img id="foodImg" />
+		<span id="aiResponse">Reponse goes here</span>
 	</div>
 
-	<label id="food-drop" class="maximize">
-		<span id="attach-label">Attach image of your food to learn more about it</span>
-		<input name="image" form="submission" type="file" id="image-input" multiple accept="image/*" />
+	<label id="foodDrop" class="maximize">
+		<span id="attachLabel">Attach image of your food to learn more about it</span>
+		<input name="image" form="submission" type="file" id="imageInput" multiple accept="image/*" />
 	</label>
 	
 	<span id="input-area" hidden>
@@ -26,29 +26,29 @@
 	</span>
 
 	<p hidden>Find substitutes:</p>
-	<table id="options-table" hidden>
+	<table id="optionsTable" hidden>
 		<tr>
-			<td>Gluten free</td>
+			<td>glutenFree</td>
 			<td><input name="gluten_free" form="submission" type="checkbox" /></td>
 		</tr>
 		<tr>
-			<td>Vegetarian</td>
+			<td>vegetarian</td>
 			<td><input name="vegetarian" form="submission" type="checkbox" /></td>
 		</tr>
 		<tr>
-			<td>Vegan</td>
+			<td>vegan</td>
 			<td><input name="vegan" form="submission" type="checkbox" /></td>
 		</tr>
 		<tr>
-			<td>Dairy free</td>
+			<td>dairyFree</td>
 			<td><input name="dairy_free" form="submission" type="checkbox" /></td>
 		</tr>
 		<tr>
-			<td>Allergens</td>
+			<td>allergens</td>
 			<td><input name="allergens" form="submission" type="text" /></td>
 		</tr>
 	</table>
 
-	<input form="submission" type="submit" id="submit-button" hidden>
+	<input form="submission" type="submit" id="submitButton" hidden>
 	
 </body>
