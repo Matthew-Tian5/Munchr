@@ -1,11 +1,13 @@
 /** @type { HTMLLabelElement } */ var drop;
 /** @type { HTMLInputElement } */ var input;
 /** @type { HTMLImageElement } */ var preview;
+/** @type { HTMLSpanElement } */ var inputArea;
 
 function loaded() {
-	drop = document.getElementById("food-drop");
-	input = document.getElementById("image-input");
-	preview = document.getElementById("food-img");
+	drop = document.getElementById("foodDrop");
+	input = document.getElementById("imageInput");
+	preview = document.getElementById("foodImg");
+	inputArea = document.getElementById("inputArea");
 
 	drop.addEventListener("drop", dropHandler);
 
@@ -40,6 +42,9 @@ function displayPreview(file) {
 	if (file.type.startsWith("image/")) {
 		preview.src = URL.createObjectURL(file);
 		preview.alt = file.name;
+		document.getElementById("chat").hidden = false;
+		//document.getElementById("optionsTable").hidden = false;
+		//document.getElementById("submitButton").hidden = false;
 	} else {
 		alert("You must upload a valid image");
 	}
@@ -61,5 +66,9 @@ function dropHandler(ev) {
 		alert("You must upload a valid image");
 		return;
 	}
+	inputArea.insertBefore(drop, document.getElementById("input-text"));
+	document.getElementById("attachLabel").innerText = "Attach";
+	inputArea.hidden = false;
+	drop.classList.remove("maximize");
 	displayPreview(file.getAsFile());
 }
