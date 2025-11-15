@@ -1,0 +1,9 @@
+{
+  "caloricBudget": 400,
+  "nutritionconcerns": {
+    "sugar":true,
+    "protein": false,
+    "fiber": false
+  },
+  "budget": 10
+}

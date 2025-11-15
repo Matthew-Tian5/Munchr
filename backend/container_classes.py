@@ -26,6 +26,11 @@ class food:
         return self.price_
     def getCalories(self):
         return self.calories_
+    def getName(self):
+        return self.name_
+    def getNutrition(self):
+        return self.nutrition
+    
 
 
 class user_request:
@@ -52,5 +57,7 @@ class user_request:
         return self.monetary_budget_ <= self.original_food_.getPrice()
     def overCaloricBudget(self):
         return self.caloric_budget_ <= self.original_food_.getCalories()
+    def getOriginalFood(self):
+        return self.original_food_
     
     
