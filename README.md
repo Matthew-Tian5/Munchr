@@ -1,5 +1,7 @@
 # Munchr
 
-Munchr is a food app where users are able to take pictures of their food, and Munchr will analyze it and tell them its nutrition, calories, and give alternative healthier suggestions. Munchr will use Gemini AI to analyze the nutrition, and OPENPRICENGINE to find ingredients or food alternatives to make their meal healthier.
+Healthy Eating Healthy Finances
+
+Munchr is a smart food application that uses advanced AI to provide instant nutritional analysis from a food photo. By integrating Google's Gemini AI for image recognition and nutritional estimation, and OpenPriceEngine for sourcing healthier food alternatives, Munchr gives users a comprehensive understanding of their meals and practical suggestions for improvement.
 
 Made by Matthew, Henry, Jacob, and Ferdia
