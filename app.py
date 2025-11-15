@@ -1,9 +1,8 @@
 import os
 import google.generativeai as genai
 from flask import Flask, render_template, request, jsonify
-from PIL import Image
 import io
-
+import frontend
 
 app = Flask(__name__)
 
