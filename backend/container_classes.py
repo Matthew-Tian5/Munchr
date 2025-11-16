@@ -45,13 +45,14 @@ class user_request:
         self.concerns_ = nutritionconcerns
     #this snippet of code checks for any mismatches between the user's desires and the nutritional content
     def nutritionalMatch(self):
+        a = False
         if self.original_food_.isHighFiber() and nutritionconcerns["fiber"]:
-            return False
+            a = True
         if self.original_food_.isHighSugar() and nutritionconcerns["sugar"]:
-            return False
+            a = True
         if self.original_food_.isHighProtein() and nutritionconcerns["protein"]:
-            return True
-        return True
+            a = True
+        return a
     #this returns whether the food is in the user's budget
     def requestExpensive(self):
         return self.monetary_budget_ <= self.original_food_.getPrice()

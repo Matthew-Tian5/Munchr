@@ -1,11 +1,7 @@
 from container_classes import *
 import json
 
-def getFoodData(img):
-    #send in gemini api call
-    #get response as a json
-    #turn the json into a food object
-    return
+#get food data is now done in app.py
 
 #read in the json file and then using that json file we then return an object containing the recovered info
 def readFoodJson(foodJson):
@@ -23,7 +19,7 @@ def readReqJsonData(requestFile):
 def getUserInput(food, userRequestJson):
     budget, caloricBudget, nutritionconcerns = readReqJsonData(userRequestJson)
     #convert the user input into an object
-    userInput = user_request(budget, food, caloricBudget, nutritionconcerns)
+    userInput = user_request(budget, food_obj, caloricBudget, nutritionconcerns) 
 
     return userInput
 
