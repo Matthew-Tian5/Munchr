@@ -1,74 +1,98 @@
-/** @type { HTMLLabelElement } */ var drop;
-/** @type { HTMLInputElement } */ var input;
-/** @type { HTMLImageElement } */ var preview;
-/** @type { HTMLSpanElement } */ var inputArea;
+var imageInput;
+var foodImg;
+/** @type { HTMLElement } */ var foodDrop;
+var inputArea;
+var inputText;
+var submitButton;
+var chatContainer;
+var optionsSection;
 
 function loaded() {
-	drop = document.getElementById("foodDrop");
-	input = document.getElementById("imageInput");
-	preview = document.getElementById("foodImg");
+	imageInput = document.getElementById("imageInput");
+	foodImg = document.getElementById("foodImg");
+	foodDrop = document.getElementById("foodDrop");
 	inputArea = document.getElementById("inputArea");
+	inputText = document.getElementById("inputText");
+	submitButton = document.getElementById("submitButton");
+	chatContainer = document.getElementById("chatContainer");
+	optionsSection = document.getElementById("optionsSection");
 
-	drop.addEventListener("drop", dropHandler);
-
-	drop.addEventListener("dragover", ev => { // trigger hover effect
-		let items = ev.dataTransfer.items;
-		if (items.length == 1 && items[0].kind == "file" && items[0].type.startsWith("image/")) {
-			ev.preventDefault();
-			ev.dataTransfer.dropEffect = "copy";
-			drop.classList.add("image_hover");
-		} else {
-			ev.dataTransfer.dropEffect = "none";
+	// Handle image upload
+	imageInput.addEventListener("change", e => {
+		if (e.target.files && e.target.files[0]) {
+			const reader = new FileReader();
+			
+			reader.onload = function(e) {
+				foodImg.src = e.target.result;
+				foodImg.style.display = "block";
+				foodDrop.hidden = true;
+				inputArea.removeAttribute("hidden")
+				optionsSection.removeAttribute("hidden");
+				
+				// Add user message
+				addMessage("I've uploaded an image of my food. What can you tell me about it?", false);
+				
+				// Simulate AI response
+				sendRequest();
+			};
+			
+			reader.readAsDataURL(e.target.files[0]);
 		}
 	});
 
-	drop.addEventListener("dragleave", () => { // remove hover effect
-		drop.classList.remove("image_hover");
-	})
-
-	input.addEventListener("change", ev => {
-		if (ev.target.files.length == 1 && ev.target.files[0].type.startsWith("image/"))
-			displayPreview(ev.target.files[0]);
-		else
-			alert("Please upload only 1 image")
+	// Handle text submission
+	submitButton.addEventListener("click", sendMessage);
+	inputText.addEventListener("keypress", e => {
+		if (e.key == "Enter" && !e.shiftKey) {
+			e.preventDefault();
+			sendMessage();
+		}
 	});
-}
 
-/**
- * 
- * @param { File } file
- */
-function displayPreview(file) {
-	if (file.type.startsWith("image/")) {
-		preview.src = URL.createObjectURL(file);
-		preview.alt = file.name;
-		document.getElementById("chat").hidden = false;
-		//document.getElementById("optionsTable").hidden = false;
-		//document.getElementById("submitButton").hidden = false;
-	} else {
-		alert("You must upload a valid image");
+	function sendMessage() {
+		const message = inputText.value.trim();
+		if (message) {
+			addMessage(message, false);
+			inputText.value = "";
+			
+			// Show loading indicator
+			const loadingMessage = document.createElement("div");
+			loadingMessage.className = "message ai-message";
+			loadingMessage.innerHTML = "<div class=\"loading\"></div>";
+			chatContainer.appendChild(loadingMessage);
+			chatContainer.scrollTop = chatContainer.scrollHeight;
+			
+			// Simulate AI response
+			sendRequest();
+		}
 	}
-}
 
-/**
- * 
- * @param { DragEvent } ev 
- */
-function dropHandler(ev) {
-	ev.preventDefault();
-	drop.classList.remove("image_hover");
-	if (ev.dataTransfer.items.length != 1) {
-		alert("Please upload only 1 image");
-		return;
+	function addMessage(text, isAI) {
+		const messageDiv = document.createElement("div");
+		messageDiv.className = `message ${isAI ? "ai" : "user"}-message`;
+		messageDiv.textContent = text;
+		chatContainer.appendChild(messageDiv);
+		chatContainer.scrollTop = chatContainer.scrollHeight;
 	}
-	let file = ev.dataTransfer.items[0];
-	if (file.kind != "file" || !file.type.startsWith("image/")) {
-		alert("You must upload a valid image");
-		return;
-	}
-	inputArea.insertBefore(drop, document.getElementById("input-text"));
-	document.getElementById("attachLabel").innerText = "Attach";
-	inputArea.hidden = false;
-	drop.classList.remove("maximize");
-	displayPreview(file.getAsFile());
+
+	// Drag and drop functionality
+	foodDrop.addEventListener("dragover", e => {
+		e.preventDefault();
+		foodDrop.classList.add("drag");
+	});
+
+	foodDrop.addEventListener("dragleave", () => {
+		foodDrop.classList.remove("drag");
+	});
+
+	foodDrop.addEventListener("drop", e => {
+		e.preventDefault();
+		foodDrop.classList.remove("drag");
+		
+		if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+			imageInput.files = e.dataTransfer.files;
+			const event = new Event("change", { bubbles: true });
+			imageInput.dispatchEvent(event); // re-use change code
+		}
+	});
 }

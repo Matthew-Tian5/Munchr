@@ -2,53 +2,62 @@
 <html lang="en">
 <head>
 	<title>Munchr - Learn about your food</title>
-	<script src='index.js'></script>
-	<link rel='stylesheet' type='text/css' media='screen' href='style.css'>
-	<meta charset='utf-8'>
-	<meta name='viewport' content='width=device-width, initial-scale=1'>
+	<script src="index.js"></script>
+	<link rel="stylesheet" type="text/css" media="screen" href="index.css">
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body onload="loaded();">
-
+	
 	<h1>Munchr</h1>
 
-	<div hidden id="chat">
-		<img id="foodImg" />
-		<span id="aiResponse">Reponse goes here</span>
+	<div class="container">
+		<div id="imageSection">
+			<label id="foodDrop" class="maximize">
+				<span id="attachLabel">Attach image of your food to learn more about it</span>
+				<input name="image" form="submission" type="file" id="imageInput" accept="image/*" hidden />
+			</label>
+			<img id="foodImg" /> <!-- preview -->
+		</div>
+
+		<div class="chatSection">
+			<div id="chatContainer">
+				<div class="message ai-message">
+					Hello! Welcome to Munchr. Upload a food image and I'll tell you about healthier options!
+				</div>
+			</div>
+
+			<div id="inputArea" hidden>
+				<textarea id="inputText" name="input" form="submission" type="text" placeholder="Ask me about your food..."></textarea>
+				<button id="submitButton">Send</button>
+			</div>
+		</div>
 	</div>
 
-	<label id="foodDrop" class="maximize">
-		<span id="attachLabel">Attach image of your food to learn more about it</span>
-		<input name="image" form="submission" type="file" id="imageInput" multiple accept="image/*" />
-	</label>
-	
-	<span id="inputArea" hidden>
-		<textarea id="inputText" name="input" form="submission" type="text" placeholder="..."></textarea>
-	</span>
-
-	<p hidden>Find substitutes:</p>
-	<table id="optionsTable" hidden>
-		<tr>
-			<td>glutenFree</td>
-			<td><input name="gluten_free" form="submission" type="checkbox" /></td>
-		</tr>
-		<tr>
-			<td>vegetarian</td>
-			<td><input name="vegetarian" form="submission" type="checkbox" /></td>
-		</tr>
-		<tr>
-			<td>vegan</td>
-			<td><input name="vegan" form="submission" type="checkbox" /></td>
-		</tr>
-		<tr>
-			<td>dairyFree</td>
-			<td><input name="dairy_free" form="submission" type="checkbox" /></td>
-		</tr>
-		<tr>
-			<td>allergens</td>
-			<td><input name="allergens" form="submission" type="text" /></td>
-		</tr>
-	</table>
-
-	<input form="submission" type="submit" id="submitButton" hidden>
-	
+	<div hidden id="optionsSection">
+		<p>Find substitutes:</p>
+		<table id="optionsTable">
+			<tr>
+				<td>Gluten free</td>
+				<td><input name="glutenFree" form="submission" type="checkbox" /></td>
+			</tr>
+			<tr>
+				<td>Vegetarian</td>
+				<td><input name="vegetarian" form="submission" type="checkbox" /></td>
+			</tr>
+			<tr>
+				<td>Vegan</td>
+				<td><input name="vegan" form="submission" type="checkbox" /></td>
+			</tr>
+			<tr>
+				<td>Dairy free</td>
+				<td><input name="dairyFree" form="submission" type="checkbox" /></td>
+			</tr>
+			<tr>
+				<td>Allergens</td>
+				<td><input name="allergens" form="submission" type="text" placeholder="Allergens (such as nuts, shellfish)" /></td>
+			</tr>
+		</table>
+	</div>
 </body>
+</html>
