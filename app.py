@@ -1,14 +1,13 @@
 import os
 import google.generativeai as genai
 from flask import Flask, render_template, request, jsonify
+from flask_cors import CORS
 import io
 from PIL import Image
-from reading_functions import getFoodData, readFoodJson, getUserInput, getSuggestion
-from container_classes import food, user_request
-
+import base64
 
 app = Flask(__name__)
-
+CORS(app)  # Enable CORS for all routes
 
 try:
     genai.configure(api_key=os.environ["GEMINI_API_KEY"])
@@ -16,180 +15,163 @@ except KeyError:
     print("Error: GEMINI_API_KEY environment variable not set.")
     exit()
 
-
 model = genai.GenerativeModel('gemini-pro-vision')
-
 
 @app.route("/")
 def home():
     """Serves the main HTML page."""
-
     return render_template("index.html")
-
 
 @app.route("/analyze", methods=["POST"])
 def analyze_image():
     """Handles the image upload and Gemini API call."""
+    print("Analyze endpoint hit")  # Debug log
+    
     if 'image' not in request.files:
+        print("No image file in request")  # Debug log
         return jsonify({"error": "No image file provided"}), 400
 
     image_file = request.files['image']
+    
+    if image_file.filename == '':
+        print("Empty filename")  # Debug log
+        return jsonify({"error": "No image file selected"}), 400
 
-    budget = request.form.get('budget', type=float)
-    caloric_budget = request.form.get('caloric_budget', type=float)
-
-    nutrition_concerns = {
-        'sugar': request.form.get('sugar_concern', 'false').lower() == 'true',
-        'protein': request.form.get('protein_concern', 'false').lower() == 'true',
-
-        'fiber': request.form.get('fiber_concern', 'false').lower() == 'true'
-    }
+    print(f"Processing image: {image_file.filename}")  # Debug log
 
     try:
-       
-        prompt = """
-        Analyze this food image and return ONLY a JSON object with the following structure:
-        {
-            "name": "food name",
-            "calories": estimated_calories,
-            "price": estimated_price,
-            "fiber": estimated_fiber_grams,
-            "protein": estimated_protein_grams,
-            "sugar": estimated_sugar_grams
+        # Get form data
+        user_message = request.form.get('message', 'Tell me about this food')
+        dietary_preferences = {
+            'gluten_free': request.form.get('gluten_free') == 'on',
+            'vegetarian': request.form.get('vegetarian') == 'on',
+            'vegan': request.form.get('vegan') == 'on',
+            'dairy_free': request.form.get('dairy_free') == 'on',
+            'allergens': request.form.get('allergens', '')
         }
+
+        print(f"User message: {user_message}")  # Debug log
+        print(f"Dietary preferences: {dietary_preferences}")  # Debug log
+
+        # Build the prompt based on user input and dietary preferences
+        prompt = build_prompt(user_message, dietary_preferences)
+        print(f"Prompt: {prompt}")  # Debug log
         
-        Provide realistic estimates based on typical serving sizes. Return ONLY the JSON, no additional text.
-        """
-        image = Image.open(image_file.stream)
-
-
+        # Process the image
+        image_data = image_file.read()
+        image = Image.open(io.BytesIO(image_data))
+        
+        print("Calling Gemini API...")  # Debug log
+        # Generate content using Gemini
         response = model.generate_content([prompt, image])
-        response_text = response.text.strip()
-
-        #after testing we found that sometimes the response is wrapped in ```json ... ``` so we need to clean that up
-        if response_text.startswith('```json'):
-            response_text = response_text[7:]
-        if response_text.endswith('```'):
-            response_text = response_text[:-3]
-
-
-        food_data = json.loads(response_text)
-
-
-
-        analyzed_food = food(
-            name=food_data["name"],
-            calories=food_data["calories"],
-            price=food_data["price"],
-            fiber=food_data["fiber"],
-            protein=food_data["protein"],
-            sugar=food_data["sugar"]
-        )
-
-        user_request_obj = user_request(
-            budget=budget,
-            food_obj=analyzed_food,
-            caloricBudget=caloric_budget,
-            nutritionconcerns=nutrition_concerns
-        )
-
-
-        suggestion_data = getSuggestion(user_request_obj)
-        suggestion_json = json.loads(suggestion_data)
-
-
-
-        #this si for the 2nd part after we give analyze their food
-        improvement_prompt = f"""
-        Based on this food analysis and user preferences, suggest a healthier/better alternative:
         
-        Current Food: {suggestion_json['oldfood']}
-        User Concerns: 
-        - Budget concern: {suggestion_json['goodPrice']}
-        - Calorie concern: {suggestion_json['tooManyCalories']}
-        - Nutrition concern: {suggestion_json['poorNutrition']}
+        print("Gemini API call successful")  # Debug log
         
-        Provide 2-3 specific alternative food suggestions that address the user's concerns.
-
-        also give a local store with prices where the user can buy these foods
-        Return as a JSON array with objects containing: name, calories, price, fiber, protein, sugar, and reasoning.
-        """
-
-
-
-
-
-        improvement_response = model.generate_content(improvement_prompt)
-        improvement_suggestions = json.loads(improvement_response.text)
-
         return jsonify({
-            "analyzed_food": suggestion_json['oldfood'],
-            "concerns": {
-                "price_issue": suggestion_json['goodPrice'],
-                "calorie_issue": suggestion_json['tooManyCalories'],
-                "nutrition_issue": suggestion_json['poorNutrition']
-            },
-            "improvement_suggestions": improvement_suggestions
+            "success": True,
+            "analysis": response.text,
+            "dietary_info": get_dietary_info(dietary_preferences)
         })
 
-        
-
-
     except Exception as e:
-        print(f"Error processing image: {e}")
-        return jsonify({"error": "Failed to analyze image"}), 500
+        print(f"Error processing image: {e}")  # Debug log
+        return jsonify({"error": f"Failed to analyze image: {str(e)}"}), 500
 
-
-
-@app.route("/suggest", methods=["POST"])
-def get_food_suggestions():
-    """Get food suggestions based on user preferences without an image."""
+@app.route("/chat", methods=["POST"])
+def chat():
+    """Handles follow-up questions about the food."""
+    print("Chat endpoint hit")  # Debug log
+    
     try:
         data = request.get_json()
+        if not data:
+            return jsonify({"error": "No JSON data provided"}), 400
+            
+        user_message = data.get('message', '')
+        food_context = data.get('food_context', '')
         
-       
-        mock_food = food(
-            name=data.get('current_food', 'generic food'),
-            calories=data.get('current_calories', 0),
-            price=data.get('current_price', 0),
-            fiber=data.get('current_fiber', 0),
-            protein=data.get('current_protein', 0),
-            sugar=data.get('current_sugar', 0)
-        )
+        print(f"Chat - User message: {user_message}")  # Debug log
+        print(f"Chat - Food context length: {len(food_context)}")  # Debug log
         
-       
-        user_request_obj = user_request(
-            budget=data.get('budget', 0),
-            food_obj=mock_food,
-            caloricBudget=data.get('caloric_budget', 0),
-            nutritionconcerns=data.get('nutrition_concerns', {})
-        )
+        # Use a text-only model for follow-up questions
+        text_model = genai.GenerativeModel('gemini-pro')
         
-  
-        suggestion_prompt = f"""
-        The user wants alternatives to their current food:
-        Current Food: {mock_food.name_}
-        Calories: {mock_food.calories_}
-        Price: ${mock_food.price_}
-        Nutrition: {mock_food.nutrition}
+        prompt = f"""
+        Based on this food context: {food_context}
         
-        User Preferences:
-        Budget: ${data.get('budget', 0)}
-        Caloric Budget: {data.get('caloric_budget', 0)} calories
-        Nutrition Concerns: {data.get('nutrition_concerns', {})}
+        User's question: {user_message}
         
-        Provide 3 alternative food suggestions as a JSON array with objects containing:
-        name, calories, price, fiber, protein, sugar, and reasoning.
+        Please provide a helpful response about the food, focusing on:
+        - Nutritional information
+        - Ingredients analysis
+        - Dietary considerations
+        - Health benefits/concerns
+        - Preparation suggestions
+        
+        Keep your response concise and informative.
         """
         
-        response = model.generate_content(suggestion_prompt)
-        suggestions = json.loads(response.text)
+        response = text_model.generate_content(prompt)
         
-        return jsonify({"suggestions": suggestions})
+        return jsonify({
+            "success": True,
+            "response": response.text
+        })
         
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Error in chat: {e}")  # Debug log
+        return jsonify({"error": f"Failed to process your question: {str(e)}"}), 500
 
+def build_prompt(user_message, dietary_preferences):
+    """Build the prompt for Gemini based on user message and dietary preferences."""
+    
+    dietary_requirements = []
+    if dietary_preferences['gluten_free']:
+        dietary_requirements.append("gluten-free")
+    if dietary_preferences['vegetarian']:
+        dietary_requirements.append("vegetarian")
+    if dietary_preferences['vegan']:
+        dietary_requirements.append("vegan")
+    if dietary_preferences['dairy_free']:
+        dietary_requirements.append("dairy-free")
+    if dietary_preferences['allergens']:
+        dietary_requirements.append(f"free from {dietary_preferences['allergens']}")
+    
+    dietary_text = ""
+    if dietary_requirements:
+        dietary_text = f"The user is looking for {', '.join(dietary_requirements)} options. "
+    
+    base_prompt = f"""
+    Analyze this food image and provide detailed information about:
+    
+    1. What food/dish this appears to be
+    2. Main ingredients and components
+    3. Nutritional content (calories, macronutrients, key vitamins/minerals)
+    4. Potential allergens
+    5. Health benefits and concerns
+    
+    {dietary_text}
+    
+    {f"Additional user question: {user_message}" if user_message else "Please provide a general analysis of this food."}
+    
+    Also suggest possible substitutes or modifications that would align with the user's dietary preferences.
+    
+    Format your response in a clear, conversational way that's easy to understand.
+    """
+    
+    return base_prompt
+
+def get_dietary_info(dietary_preferences):
+    """Extract relevant dietary information for the frontend."""
+    active_preferences = []
+    for pref, active in dietary_preferences.items():
+        if active and pref != 'allergens':
+            active_preferences.append(pref.replace('_', ' '))
+    
+    if dietary_preferences['allergens']:
+        active_preferences.append(f"allergen-free: {dietary_preferences['allergens']}")
+    
+    return active_preferences
 
 if __name__ == "__main__":
-    app.run(debug=True) 
+    app.run(debug=True, port=5000)
